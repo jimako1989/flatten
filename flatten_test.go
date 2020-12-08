@@ -8,6 +8,61 @@ import (
 	"unicode"
 )
 
+func TestFlattenNest(t *testing.T) {
+	cases := []struct {
+		test   map[string]interface{}
+		want   map[string]interface{}
+		prefix string
+		style  SeparatorStyle
+	}{
+		{
+			map[string]interface{}{
+				"string":        "bean",
+				"slice_string":  []string{"a", "b", "c"},
+				"slice_float64": []float64{1.2, 2.3},
+				"map": map[string]interface{}{
+					"int64": []int64{1, 2},
+					"int":   []int{4, 5},
+				},
+				"float": 1.4567,
+				"bool":  true,
+			},
+			map[string]interface{}{
+				"string":          "bean",
+				"slice_string.0":  "a",
+				"slice_string.1":  "b",
+				"slice_string.2":  "c",
+				"slice_float64.0": 1.2,
+				"slice_float64.1": 2.3,
+				"map.int64.0":     int64(1),
+				"map.int64.1":     int64(2),
+				"map.int.0":       4,
+				"map.int.1":       5,
+				"float":           1.4567,
+				"bool":            true,
+			},
+			"",
+			DotStyle,
+		},
+	}
+
+	for i, test := range cases {
+		got, err := Flatten(test.test, test.prefix, test.style)
+		if err != nil {
+			t.Errorf("%d: failed to flatten: %v", i+1, err)
+			continue
+		}
+		if !reflect.DeepEqual(got, test.want) {
+			t.Errorf("%d: mismatch, got: %v wanted: %v", i+1, got, test.want)
+		}
+		// for k, v := range test.want {
+		// 	if got[k] != v {
+		// 		t.Errorf("%d: mismatch, key: %s, got: %v wanted: %v", i+1, k, got[k], v)
+		// 	}
+		// }
+	}
+}
+
 func TestFlatten(t *testing.T) {
 	cases := []struct {
 		test   string
